@@ -39,7 +39,6 @@ def load_ids_data(total_char_file, expected_vocab_size, ids_max_len=40):
     with open(total_char_file, 'r', encoding='utf-8') as f:
         total_chars = f.read().strip()
 
-    logger.log(f"总字符数: {len(total_chars)}")
 
     try:
         ids_map, ids_set, ids_base = cn.resolve_IDS_babelstone(
@@ -68,7 +67,6 @@ def load_ids_data(total_char_file, expected_vocab_size, ids_max_len=40):
         ids_indices = [ids2idx.get(c, ids2idx['<UNK>']) for c in ids_tuple]
         ids_lengths.append(len(ids_indices))
 
-        # Padding到固定长度
         if len(ids_indices) < ids_max_len:
             ids_indices += [ids2idx['<PAD>']] * (ids_max_len - len(ids_indices))
         else:
@@ -96,11 +94,6 @@ def main():
     total_txt_file = cfg.total_txt_file
     gen_txt_file = cfg.gen_txt_file
     img_save_path = cfg.img_save_path
-    classifier_free = cfg.classifier_free
-    cont_gudiance_scale = cfg.cont_scale
-    sk_gudiance_scale = cfg.sk_scale
-    use_ids = cfg.get('use_ids', False)
-    ids_max_len = cfg.get('ids_max_len', 40)
     expected_vocab_size = cfg.get('ids_vocab_size', None)
 
     cfg.__delattr__('model_path')
@@ -138,7 +131,6 @@ def main():
         model.convert_to_fp16()
     model.eval()
 
-    # 检查风格图片是否存在
     if not os.path.exists(sty_img_path):
         logger.log(f"Error: Style image not found: {sty_img_path}")
         return
@@ -254,11 +246,6 @@ def main():
         sample = ((sample + 1) * 127.5).clamp(0, 255).to(th.uint8)
         sample = sample.permute(0, 2, 3, 1)
         sample = sample.contiguous()
-
-        gathered_samples = [th.zeros_like(sample) for _ in range(dist.get_world_size())]
-        dist.all_gather(gathered_samples, sample)
-        all_images.extend([sample.cpu().numpy() for sample in gathered_samples])
-
         gathered_labels = [
             th.zeros_like(classes) for _ in range(dist.get_world_size())
         ]
