@@ -1,5 +1,3 @@
-# unet.py (IDS + 多阶段合并版)
-
 from abc import abstractmethod
 import math
 import numpy as np
@@ -53,15 +51,6 @@ class IDSEncoder(nn.Module):
             with th.no_grad():
                 self.ids_emb.weight[self.ids_emb.padding_idx].fill_(0)
 
-        for name, param in self.lstm.named_parameters():
-            if 'weight_ih' in name:
-                nn.init.xavier_uniform_(param)
-            elif 'weight_hh' in name:
-                nn.init.orthogonal_(param)
-            elif 'bias' in name:
-                nn.init.zeros_(param)
-                n = param.size(0)
-                param.data[n // 4:n // 2].fill_(1.0)
 
         for module in self.output_proj:
             if isinstance(module, nn.Linear):
@@ -81,34 +70,6 @@ class IDSEncoder(nn.Module):
         ids_feat = th.cat([h_n[-2], h_n[-1]], dim=1)  # [bs, hidden_dim]
         ids_out = self.output_proj(ids_feat)
         return ids_out
-
-
-class AttentionPool2d(nn.Module):
-    def __init__(
-            self,
-            spacial_dim: int,
-            embed_dim: int,
-            num_heads_channels: int,
-            output_dim: int = None,
-    ):
-        super().__init__()
-        self.positional_embedding = nn.Parameter(
-            th.randn(embed_dim, spacial_dim ** 2 + 1) / embed_dim ** 0.5
-        )
-        self.qkv_proj = conv_nd(1, embed_dim, 3 * embed_dim, 1)
-        self.c_proj = conv_nd(1, embed_dim, output_dim or embed_dim, 1)
-        self.num_heads = embed_dim // num_heads_channels
-        self.attention = QKVAttention(self.num_heads)
-
-    def forward(self, x):
-        b, c, *_spatial = x.shape
-        x = x.reshape(b, c, -1)
-        x = th.cat([x.mean(dim=-1, keepdim=True), x], dim=-1)
-        x = x + self.positional_embedding[None, :, :].to(x.dtype)
-        x = self.qkv_proj(x)
-        x = self.attention(x)
-        x = self.c_proj(x)
-        return x[:, :, 0]
 
 
 class TimestepBlock(nn.Module):
@@ -305,14 +266,6 @@ class AttentionBlock(nn.Module):
         h = self.proj_out(h)
         return (x + h).reshape(b, c, *spatial)
 
-
-def count_flops_attn(model, _x, y):
-    b, c, *spatial = y[0].shape
-    num_spatial = int(np.prod(spatial))
-    matmul_ops = 2 * b * (num_spatial ** 2) * c
-    model.total_ops += th.DoubleTensor([matmul_ops])
-
-
 class QKVAttentionLegacy(nn.Module):
     def __init__(self, n_heads):
         super().__init__()
@@ -401,10 +354,6 @@ class UNetWithStyEncoderModel(nn.Module):
         self.num_res_blocks = num_res_blocks
         self.attention_resolutions = attention_resolutions
         self.dropout = dropout
-        self.channel_mult = channel_mult
-        self.conv_resample = conv_resample
-        self.num_classes = num_classes
-        self.use_checkpoint = use_checkpoint
         self.dtype = th.float16 if use_fp16 else th.float32
         self.num_heads = num_heads
         self.num_head_channels = num_head_channels
@@ -421,8 +370,6 @@ class UNetWithStyEncoderModel(nn.Module):
 
         if self.num_classes is not None:
             self.sty_encoder = StyleEncoder(sty_dim=128)
-
-            # 🔥 多阶段模块 (来自多阶段版本)
             self.stage_base_proj = nn.Sequential(
                 linear(128, 256),
                 nn.SiLU(),
@@ -440,13 +387,13 @@ class UNetWithStyEncoderModel(nn.Module):
 
             if use_ids:
 
-                self.label_emb_dim = time_embed_dim // 4   # 128
-                self.ids_emb_dim = time_embed_dim // 4     # 128
-                self.sty_emb_dim = time_embed_dim // 2     # 256
+                self.label_emb_dim = time_embed_dim // 4  
+                self.ids_emb_dim = time_embed_dim // 4     
+                self.sty_emb_dim = time_embed_dim // 2     
             else:
 
-                self.label_emb_dim = time_embed_dim // 2   # 256
-                self.sty_emb_dim = time_embed_dim // 2     # 256
+                self.label_emb_dim = time_embed_dim // 2   
+                self.sty_emb_dim = time_embed_dim // 2     
 
 
             if use_ids:
