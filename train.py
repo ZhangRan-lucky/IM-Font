@@ -121,24 +121,6 @@ def main():
     stage_mod_total = sum(p.numel() for p in model.stage_modulators.parameters())
     logger.log(f"stage_modulators: {stage_mod_trainable}/{stage_mod_total} trainable")
 
-    if use_ids:
-        ids_encoder_trainable = sum(p.numel() for p in model.ids_encoder.parameters() if p.requires_grad)
-        ids_encoder_total = sum(p.numel() for p in model.ids_encoder.parameters())
-        logger.log(f"ids_encoder: {ids_encoder_trainable}/{ids_encoder_total} trainable")
-
-    total_trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
-    total_params = sum(p.numel() for p in model.parameters())
-    logger.log(f"Total: {total_trainable}/{total_params} trainable parameters")
-    logger.log(f"Number of stages: {model.num_stages}")
-
-    logger.log(f"\n🔥 Learnable Weights:")
-    logger.log(f"  stage_weight: {model.stage_weight.item():.4f}")
-    if use_ids:
-        logger.log(f"  ids_weight: {model.ids_weight.item():.4f}")
-
-    assert sty_encoder_trainable == 0, "sty_encoder should be completely frozen!"
-
-
     TrainLoop(
         model=model,
         diffusion=diffusion,
@@ -147,10 +129,6 @@ def main():
         microbatch=cfg.microbatch,
         lr=cfg.lr,
         ema_rate=cfg.ema_rate,
-        log_interval=cfg.log_interval,
-        save_interval=cfg.save_interval,
-        train_step=train_step,
-        resume_checkpoint=cfg.resume_checkpoint,
         use_fp16=cfg.use_fp16,
         fp16_scale_growth=cfg.fp16_scale_growth,
         schedule_sampler=schedule_sampler,
