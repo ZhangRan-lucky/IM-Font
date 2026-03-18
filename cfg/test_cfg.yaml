@@ -1,0 +1,24 @@
+dropout: 0.1
+chara_nums: 4000
+diffusion_steps: 1000
+noise_schedule: 'linear'
+image_size: 80
+num_channels: 128
+num_res_blocks: 3
+batch_size: 32
+num_samples: 4000
+attention_resolutions: '40, 20, 10'
+use_ddim: True
+timestep_respacing: ddim25
+use_ids: True
+ids_vocab_size: 113
+ids_max_len: 40
+num_stages: 3
+model_path: './models/model300000.pt'
+style_base_dir: '/path/to/your/data'
+total_txt_file: './total_chn.txt'
+gen_txt_file: './gen_char.txt'
+img_save_path: './results'
+classifier_free: False
+cont_scale: 3.0
+sk_scale: 3.0

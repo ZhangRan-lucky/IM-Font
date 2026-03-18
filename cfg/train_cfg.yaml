@@ -1,0 +1,20 @@
+data_dir: '/path/to/your/data/'
+total_char_file: '/path/to/your/data/total_chn.txt'
+chara_nums: 4000
+diffusion_steps: 1000
+noise_schedule: 'linear'
+image_size: 80
+num_channels: 128
+num_res_blocks: 3
+attention_resolutions: '40, 20, 10'
+lr: 0.0001
+batch_size: 32
+train_step: 300000
+sty_encoder_path: './pretrained_models/chinese_styenc.ckpt'
+model_save_dir: './path/to/your/data'
+classifier_free: False
+resume_checkpoint: ""
+use_ids: true
+ids_max_len: 40
+ids_vocab_size: 113
+num_stages: 3
