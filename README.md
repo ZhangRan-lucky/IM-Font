@@ -11,7 +11,6 @@ pip install -r requirements.txt
 
 ## Dataset
 
-------
 
 [方正字库](https://www.foundertype.com/index.php/FindFont/index) provides free font download for non-commercial users.
 
