@@ -6,7 +6,7 @@ Official implementation of **IM-Font: One-Shot Chinese Font Generation via IDS S
 
 ```bash
 pip install -r requirements.txt
-
+```
 
 
 ## Dataset
@@ -16,13 +16,13 @@ pip install -r requirements.txt
 
 Example directory hierarchy
 
-data_dir
-    |--- id_1
-    |--- id_2
-           |--- 00001.png
-           |--- 00002.png
-           |--- ...
-    |--- ...
+    data_dir
+        |--- id_1
+        |--- id_2
+               |--- 00001.png
+               |--- 00002.png
+               |--- ...
+        |--- ...
 
 
 
@@ -50,4 +50,4 @@ python sample.py --cfg_path cfg/test_cfg.yaml --style_img style.png --char "好"
 
 ------
 
-This project is based on [Diff-Font](https://github.com/Hxyz-123/Font-diff) and [openai/guided-diffusion](https://github.com/openai/guided-diffusion). The style encoder is adapted from [DG-Font](https://github.com/ecnuycxie/DG-Font).
+This project is based on [Diff-Font](https://github.com/Hxyz-123/Font-diff) and [openai/guided-diffusion](https://github.com/openai/guided-diffusion). The style encoder is adapted from [DG-Font](https://github.com/ecnuycxie/DG-Font)
