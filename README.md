@@ -1,7 +1,7 @@
 # IM-Font
 
 Official implementation of **IM-Font: One-Shot Chinese Font Generation via IDS Structural Encoding and Multi-Stage Style Injection**.
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19422224.svg)](https://doi.org/10.5281/zenodo.19422224)
+
 
 ## Dependencies
 
