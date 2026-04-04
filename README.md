@@ -17,7 +17,6 @@ pip install -r requirements.txt
 
 Example directory hierarchy
 
-```python
 data_dir
     |--- id_1
     |--- id_2
@@ -25,7 +24,7 @@ data_dir
            |--- 00002.png
            |--- ...
     |--- ...
-```
+
 
 
 
