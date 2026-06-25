@@ -16,19 +16,26 @@ To prepare the dataset:
 1. Download fonts from the Founder Type website (free for non-commercial use).
 2. Convert the font files to PNG images using our provided script:
 
+The dataset is split into training and test sets:
+
 ```bash
-python font2img.py --ttf_path /path/to/ttf --chara total_chn.txt --save_path ./data --img_size 80 --chara_size 60
-```
+# Training set: font indices 0 ~ 80 (80 fonts)
+python font2img.py --ttf_dir /path/to/fonts --chara total_chn.txt --save_root ./datastes --start_font_idx 0 --num_fonts 80
+
+# Test set: font indices 80 ~ 100 (20 fonts)
+python font2img.py --ttf_dir /path/to/fonts --chara total_chn.txt --save_root ./datastes --start_font_idx 100 --num_fonts 20
 
 Example directory hierarchy
 
-    data_dir
-        |--- id_1
-        |--- id_2
-               |--- 00001.png
-               |--- 00002.png
-               |--- ...
-        |--- ...
+    datasets/
+    ├── train_images/
+    │   ├── id_0/
+    │   ├── id_1/
+    │   └── ... (id_0 ~ id_70)
+    └── test_images/
+        ├── id_80/
+        ├── id_99/
+        └── ... (id_80 ~ id_99)
 
 The required data files are provided in the repository:
 
