@@ -1,19 +1,24 @@
 # IM-Font
 
-Official implementation of **IM-Font: One-Shot Chinese Font Generation via IDS Structural Encoding and Multi-Stage Style Injection**.
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19422461.svg)](https://doi.org/10.5281/zenodo.19422461)
+Official implementation of **IM-Font: IDS-Guided Multi-Stage Diffusion for One-Shot Chinese Font Generation**.
+This repository contains the official implementation of our paper, including training, evaluation, and inference scripts for one-shot Chinese font generation.
+This release is archived on Zenodo: [https://doi.org/10.5281/zenodo.19422461](https://zenodo.org/records/19422461)
 
-## Dependencies
 
-```bash
-pip install -r requirements.txt
-```
 
 
 ## Dataset
 
+We use fonts from [Founder Type](https://www.foundertype.com/) for training and evaluation. 
+Due to licensing restrictions, we cannot redistribute the original font files (.ttf).
 
-[方正字库](https://www.foundertype.com/index.php/FindFont/index) provides free font download for non-commercial users.
+To prepare the dataset:
+1. Download fonts from the Founder Type website (free for non-commercial use).
+2. Convert the font files to PNG images using our provided script:
+
+```bash
+python font2img.py --ttf_path /path/to/ttf --chara total_chn.txt --save_path ./data --img_size 80 --chara_size 60
+```
 
 Example directory hierarchy
 
@@ -25,19 +30,39 @@ Example directory hierarchy
                |--- ...
         |--- ...
 
+The required data files are provided in the repository:
 
+- `total_chn.txt`  : Complete character set for training and evaluation.
+- `gen_char.txt`   : Character set for inference / generation.
+- `data/raw_files/`     : BabelStone IDS source data for the `cn` module.
 
 
 ## Usage
 
 ------
 
-### Prepare dataset
-
+### Environment Setup
+1. Create a conda environment with Python 3.10.14 and activate it:
+    ```bash
+    conda create -n imfont python=3.10.14 -y
+    conda activate imfont
+2. Install PyTorch 2.2.2 with CUDA 11.8:
 ```python
-python font2img.py --ttf_path ttf_folder --chara total_chn.txt --save_path save_folder --img_size 80 --chara_size 60
+pip install torch==2.2.2 torchvision==0.17.2 --index-url https://download.pytorch.org/whl/cu118
 ```
-### Training
+3. Install other dependencies from the provided requirements.txt file in the root directory:
+```python
+pip install -r requirements.txt
+```
+
+### Train source model
+
+You have two options:
+1. Our pre-trained models are available at [Google Drive](https://drive.google.com/drive/folders/1eaYxbhV9ipaJJoXVHilryIdUZzUV01Fg?usp=sharing).
+Place the downloaded `.ckpt` and `.pt` files under `./pretrained_models/` before running the code.
+2. Train your own models
+
+To train your own models, please run the following commands.
 ```python
 python train.py --cfg_path cfg/train_cfg.yaml
 ```
@@ -46,9 +71,11 @@ python train.py --cfg_path cfg/train_cfg.yaml
 python sample.py --cfg_path cfg/test_cfg.yaml --style_img style.png --char "好"
 ```
 
-
 # Acknowledgements
 
 ------
 
-This project is based on [Diff-Font](https://github.com/Hxyz-123/Font-diff) and [openai/guided-diffusion](https://github.com/openai/guided-diffusion). The style encoder is adapted from [DG-Font](https://github.com/ecnuycxie/DG-Font)
+This project is built upon the following excellent open-source works:
+- The diffusion framework is based on [Diff-Font](https://github.com/Hxyz-123/Font-diff) and [openai/guided-diffusion](https://github.com/openai/guided-diffusion).
+- The style encoder is adapted from [DG-Font](https://github.com/ecnuycxie/DG-Font).
+- The IDS sequence dataset and processing pipeline are adapted from [IF-Font](https://github.com/Stareven233/IF-Font) (NeurIPS 2024).
