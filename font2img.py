@@ -7,11 +7,11 @@ import argparse
 import hashlib
 import random
 
-parser = argparse.ArgumentParser(description='Generate character images from .ttf/.ttc for train/test set')
+parser = argparse.ArgumentParser(description='Generate character images from .ttf/.ttc')
 parser.add_argument('--ttf_dir', type=str, required=True, help='Directory of .ttf/.ttc fonts')
 parser.add_argument('--chara', type=str, required=True, help='Character file path')
 parser.add_argument('--save_root', type=str, required=True, help='Root directory to save images')
-parser.add_argument('--start_font_idx', type=int, default=0, help='Starting font index (0-based, so 100 means skip first 100)')
+parser.add_argument('--start_font_idx', type=int, default=0, help='Starting font index')
 parser.add_argument('--num_fonts', type=int, default=20, help='Number of fonts to generate')
 parser.add_argument('--img_size', type=int, default=80, help='Canvas size of generated images')
 parser.add_argument('--chara_size', type=int, default=64, help='Font size for characters')
@@ -22,7 +22,6 @@ parser.add_argument('--min_fill', type=float, default=0.02, help='Minimum fill r
 parser.add_argument('--max_fill', type=float, default=0.9, help='Maximum fill ratio for a valid font')
 args = parser.parse_args()
 
-# 读取字符
 with open(args.chara, 'r', encoding='utf-8') as f:
     all_chars = f.read().strip()
     characters = all_chars[:args.num_chars]
@@ -41,6 +40,46 @@ def compute_fill_ratio(img):
     black_pixels = np.sum(arr < 200)
     total_pixels = arr.size
     return black_pixels / total_pixels
+
+
+def check_font_quality(font_path, pil_font, sample_chars):
+    fill_ratios = []
+    for ch in sample_chars:
+        img = draw_char(ch, pil_font, args.img_size,
+                        (args.img_size - args.chara_size) / 2,
+                        (args.img_size - args.chara_size) / 2)
+        ratio = compute_fill_ratio(img)
+        fill_ratios.append(ratio)
+    avg_fill = np.mean(fill_ratios)
+    if avg_fill < args.min_fill or avg_fill > args.max_fill:
+        return False, avg_fill
+    return True, avg_fill
+
+
+def check_font_complete(font_path, characters, font_index=0):
+    try:
+        if font_path.lower().endswith('.ttc'):
+            ttc = TTCollection(font_path)
+            font_obj = ttc.fonts[font_index]
+        else:
+            font_obj = TTFont(font_path)
+        cmap = font_obj.getBestCmap()
+        font_chars = set(chr(u) for u in cmap.keys())
+        missing = [c for c in characters if c not in font_chars]
+        if missing:
+            return False, f"Missing {len(missing)} characters"
+        return True, ""
+    except Exception as e:
+        return False, str(e)
+
+
+def get_file_hash(font_path):
+    hasher = hashlib.md5()
+    with open(font_path, 'rb') as f:
+        hasher.update(f.read())
+    return hasher.hexdigest()
+
+
 def generate_images(font_paths, save_dir, start_idx=0):
     os.makedirs(save_dir, exist_ok=True)
     failed_fonts = []
@@ -129,6 +168,7 @@ def get_complete_fonts(ttf_dir, characters):
 
 
 all_fonts, all_failed = get_complete_fonts(args.ttf_dir, characters)
+
 end_idx = args.start_font_idx + args.num_fonts
 if len(all_fonts) < end_idx:
     print(f"Warning: Only {len(all_fonts)} fonts available, but need fonts from index {args.start_font_idx} to {end_idx-1}")
@@ -141,3 +181,15 @@ print(f"Total fonts to process: {len(selected_fonts)}")
 
 failed_fonts = generate_images(selected_fonts, os.path.join(args.save_root, 'train_images'), start_idx=args.start_font_idx)
 
+all_failed_list = all_failed + failed_fonts
+if all_failed_list:
+    print("\n==== Failed Fonts ====")
+    with open(args.failed_log, 'w', encoding='utf-8') as f:
+        for fpath, reason in all_failed_list:
+            print(f"{fpath} -> {reason}")
+            f.write(f"{fpath} -> {reason}\n")
+
+print(f"\n=== Summary ===")
+print(f"Fonts processed: {len(selected_fonts)}")
+print(f"Failed fonts: {len(all_failed_list)}")
+print(f"Failed fonts list saved to {args.failed_log}")
