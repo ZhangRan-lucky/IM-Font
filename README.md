@@ -19,7 +19,7 @@ To prepare the dataset:
 The dataset is split into training and test sets:
 
 ```bash
-# Training set: font indices 0 ~ 80 (80 fonts)
+# Training set: font indices 0 ~ 79 (80 fonts)
 python font2img.py --ttf_dir /path/to/fonts --chara total_chn.txt --save_root ./datastes --start_font_idx 0 --num_fonts 80
 
 # Test set: font indices 80 ~ 100 (20 fonts)
